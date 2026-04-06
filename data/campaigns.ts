@@ -1,0 +1,175 @@
+import { ScheduledCampaign } from '@/lib/types';
+
+export const mockCampaigns: ScheduledCampaign[] = [
+  {
+    id: 'camp-weekly-promo',
+    title: 'Weekly Spa & Dining Promo',
+    sendTime: '10:00 AM',
+    cadence: 'weekly',
+    weeklyDay: 'Monday',
+    repeatEvery: 1,
+    nextSendDate: '04/14/2026',
+    isEnabled: true,
+    supportedLanguages: ['en', 'es'],
+    variants: [
+      {
+        id: 'var-spa-vip',
+        name: 'VIP Loyalty Guests',
+        segmentId: 'seg-vip',
+        segmentName: 'VIP Loyalty Guests',
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'Exclusive spa offers for you, {{ primary_guest.first_name }}',
+            body: 'Dear {{ primary_guest.formal_name }}, as a valued loyalty member, enjoy 30% off all spa treatments this week. Book your session at the front desk or reply to this message.\n\nComplimentary upgrade to our premium suite available — ask about availability.',
+            language: 'en',
+          },
+          {
+            channel: 'whatsapp',
+            isEnabled: true,
+            body: 'Hi {{ primary_guest.first_name }}! As a VIP guest, enjoy 30% off spa treatments this week. Reply here to book your session.',
+            language: 'en',
+          },
+        ],
+      },
+      {
+        id: 'var-spa-default',
+        name: 'All Guests',
+        segmentId: null,
+        segmentName: null,
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'Relax & dine at {{ hotel.name }} this week',
+            body: 'Hi {{ primary_guest.first_name }}, treat yourself during your stay! This week at {{ hotel.name }}:\n\n• 15% off all spa treatments\n• Happy hour at the rooftop bar 5-7 PM\n• Chef\'s tasting menu available Friday & Saturday\n\nBook at the front desk or reply to this message.',
+            language: 'en',
+          },
+          {
+            channel: 'sms',
+            isEnabled: true,
+            body: 'Hi {{ primary_guest.first_name }}, enjoy 15% off spa treatments this week at {{ hotel.name }}! Ask the front desk to book.',
+            language: 'en',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'camp-checkout-survey',
+    title: 'Post-Checkout Feedback',
+    sendTime: '2:00 PM',
+    cadence: 'weekly',
+    weeklyDay: 'Wednesday',
+    repeatEvery: 1,
+    nextSendDate: '04/09/2026',
+    isEnabled: true,
+    supportedLanguages: ['en'],
+    variants: [
+      {
+        id: 'var-survey-longstay',
+        name: 'Multi-Night Stay',
+        segmentId: 'seg-long-stay',
+        segmentName: 'Multi-Night Stay',
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'How was your stay at {{ hotel.name }}, {{ primary_guest.first_name }}?',
+            body: 'Hi {{ primary_guest.first_name }}, thank you for spending multiple nights with us at {{ hotel.name }}! We\'d love to hear about your extended stay experience.\n\nYour feedback helps us improve for guests like you. Please take a moment to share your thoughts: {{ guest_url }}',
+            language: 'en',
+          },
+        ],
+      },
+      {
+        id: 'var-survey-default',
+        name: 'All Guests',
+        segmentId: null,
+        segmentName: null,
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'Thank you for staying at {{ hotel.name }}',
+            body: 'Hi {{ primary_guest.first_name }}, we hope you enjoyed your stay at {{ hotel.name }}! We\'d love to hear your feedback: {{ guest_url }}',
+            language: 'en',
+          },
+          {
+            channel: 'sms',
+            isEnabled: true,
+            body: 'Hi {{ primary_guest.first_name }}, thanks for staying at {{ hotel.name }}! Share your feedback: {{ guest_url }}',
+            language: 'en',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'camp-weekend-events',
+    title: 'Weekend Events & Activities',
+    sendTime: '9:00 AM',
+    cadence: 'weekly',
+    weeklyDay: 'Thursday',
+    repeatEvery: 1,
+    nextSendDate: '04/10/2026',
+    isEnabled: true,
+    supportedLanguages: ['en'],
+    variants: [
+      {
+        id: 'var-events-default',
+        name: 'All Guests',
+        segmentId: null,
+        segmentName: null,
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'This weekend at {{ hotel.name }}',
+            body: 'Hi {{ primary_guest.first_name }}, here\'s what\'s happening this weekend at {{ hotel.name }}:\n\n• Live music Friday 7-10 PM\n• Guided city walk Saturday 10 AM\n• Sunday brunch buffet 10 AM - 2 PM\n\nAsk the front desk for details or to reserve your spot!',
+            language: 'en',
+          },
+          {
+            channel: 'sms',
+            isEnabled: true,
+            body: 'Hi {{ primary_guest.first_name }}, this weekend at {{ hotel.name }}: Live music Fri, City walk Sat, Brunch Sun. Ask the front desk!',
+            language: 'en',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'camp-monthly-loyalty',
+    title: 'Monthly Loyalty Rewards Update',
+    sendTime: '11:00 AM',
+    cadence: 'monthly',
+    repeatEvery: 1,
+    nextSendDate: '05/01/2026',
+    isEnabled: false,
+    supportedLanguages: ['en'],
+    variants: [
+      {
+        id: 'var-loyalty-default',
+        name: 'All Guests',
+        segmentId: null,
+        segmentName: null,
+        isEnabled: true,
+        channels: [
+          {
+            channel: 'email',
+            isEnabled: true,
+            subject: 'Your loyalty rewards this month',
+            body: 'Hi {{ primary_guest.first_name }}, check out your latest loyalty benefits and rewards available at {{ hotel.name }}.',
+            language: 'en',
+          },
+        ],
+      },
+    ],
+  },
+];
