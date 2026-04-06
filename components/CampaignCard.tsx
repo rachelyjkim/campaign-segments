@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * CampaignCard
+ *
+ * Campaign card for the Scheduled Campaigns tab.
+ * Matches canary-prototype-core CampaignCard exactly.
+ * NO variant rows on the card itself — clicking opens the editor.
+ */
+
 import { useState } from 'react';
 import Icon from '@mdi/react';
 import {
@@ -7,96 +15,86 @@ import {
   mdiRefresh,
   mdiAccountGroupOutline,
   mdiAccountOutline,
-  mdiPlusOutline,
 } from '@mdi/js';
 import {
   CanarySwitch,
-  CanaryButton,
-  CanaryModal,
+  CanaryTabs,
   CanarySelect,
-  ButtonType,
-  ButtonSize,
   InputSize,
 } from '@canary-ui/components';
-import { ScheduledCampaign, CampaignVariant } from '@/lib/types';
-import { AVAILABLE_SEGMENTS } from '@/data/segments';
-import { useCampaignStore } from '@/lib/store';
-import VariantRow from './VariantRow';
+import {
+  ScheduledCampaign,
+  Channel,
+  CHANNEL_LABELS,
+} from '@/lib/types';
+import { campaignCadenceLabel, campaignEndLabel } from '@/lib/utils';
 
 interface CampaignCardProps {
   campaign: ScheduledCampaign;
+  onSelect: () => void;
+  onToggleEnabled: () => void;
 }
 
-const CADENCE_LABELS: Record<string, string> = {
-  weekly: 'Weekly',
-  monthly: 'Monthly',
+const LANG_MAP: Record<string, string> = {
+  en: 'English',
+  es: 'Espanol',
+  fr: 'Francais',
 };
 
-export default function CampaignCard({ campaign }: CampaignCardProps) {
-  const { toggleCampaignEnabled, toggleVariantEnabled, addVariant, removeVariant } = useCampaignStore();
-  const [showAddSegment, setShowAddSegment] = useState(false);
-  const [selectedSegmentId, setSelectedSegmentId] = useState('');
+export function CampaignCard({ campaign, onSelect, onToggleEnabled }: CampaignCardProps) {
+  const enabledChannels = campaign.channels.filter((c) => c.isEnabled);
+  const [activeChannel, setActiveChannel] = useState<Channel>(
+    enabledChannels[0]?.channel || 'email'
+  );
 
-  const segmentVariants = campaign.variants.filter((v) => v.segmentId !== null);
-  const defaultVariant = campaign.variants.find((v) => v.segmentId === null);
-  const hasSegments = segmentVariants.length > 0;
+  const activeContent = campaign.channels.find((c) => c.channel === activeChannel);
+  const cadence = campaignCadenceLabel(campaign);
+  const endLabel = campaignEndLabel(campaign);
+  const segmentLabel = campaign.segmentTarget === 'ALL_GUESTS' ? 'All Guests' : 'Loyalty: Platinum Elite, Diamond Elite';
+  const segmentIcon = campaign.segmentTarget === 'ALL_GUESTS' ? mdiAccountGroupOutline : mdiAccountOutline;
 
-  const cadenceLabel = `${CADENCE_LABELS[campaign.cadence]}${campaign.weeklyDay ? ` · ${campaign.weeklyDay}` : ''}`;
-  const segmentLabel = hasSegments
-    ? `${segmentVariants.length} segment${segmentVariants.length > 1 ? 's' : ''}`
-    : 'All Guests';
-  const segmentIcon = hasSegments ? mdiAccountOutline : mdiAccountGroupOutline;
-
-  // Filter out segments already in use
-  const usedSegmentIds = new Set(segmentVariants.map((v) => v.segmentId));
-  const availableSegments = AVAILABLE_SEGMENTS.filter((s) => !usedSegmentIds.has(s.id));
-
-  const handleAddVariant = () => {
-    const segment = AVAILABLE_SEGMENTS.find((s) => s.id === selectedSegmentId);
-    if (!segment) return;
-
-    const newVariant: CampaignVariant = {
-      id: `var-${Date.now()}`,
-      name: segment.name,
-      segmentId: segment.id,
-      segmentName: segment.name,
-      isEnabled: true,
-      channels: [
-        { channel: 'email', isEnabled: true, subject: '', body: `Hi {{ primary_guest.first_name }}, a special message for ${segment.name} guests at {{ hotel.name }}.`, language: 'en' },
-      ],
-    };
-
-    addVariant(campaign.id, newVariant);
-    setShowAddSegment(false);
-    setSelectedSegmentId('');
-  };
+  const channelTabs = enabledChannels.map((ch) => ({
+    id: ch.channel,
+    label: CHANNEL_LABELS[ch.channel],
+    content: <></>,
+  }));
 
   return (
     <div
+      onClick={onSelect}
+      className="cursor-pointer transition-all duration-200"
       style={{
         backgroundColor: '#FFF',
         border: '1px solid #E5E5E5',
         borderRadius: 8,
         padding: 24,
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
     >
       {/* Title + toggle */}
       <div className="flex items-center justify-between">
         <h4 style={{ fontSize: 18, fontWeight: 500, color: '#000', margin: 0 }}>
           {campaign.title}
         </h4>
-        <CanarySwitch
-          checked={campaign.isEnabled}
-          onChange={() => toggleCampaignEnabled(campaign.id)}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <CanarySwitch
+            checked={campaign.isEnabled}
+            onChange={onToggleEnabled}
+          />
+        </div>
       </div>
 
-      {/* Info row 1: cadence */}
+      {/* Info row 1: cadence + end condition */}
       <div className="flex items-center" style={{ gap: 4, marginTop: 8, color: '#666', fontSize: 14 }}>
         <Icon path={mdiClockOutline} size={0.75} color="#666" />
-        <span>{cadenceLabel}</span>
-        <span style={{ margin: '0 4px' }}>·</span>
-        <span>send at {campaign.sendTime}</span>
+        <span>{cadence}</span>
+        {endLabel && (
+          <>
+            <span style={{ margin: '0 4px' }}>·</span>
+            <span>{endLabel}</span>
+          </>
+        )}
       </div>
 
       {/* Info row 2: next send + audience */}
@@ -104,7 +102,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         {campaign.nextSendDate && (
           <div className="flex items-center" style={{ gap: 4 }}>
             <Icon path={mdiRefresh} size={0.75} color="#666" />
-            <span>Next send: {campaign.nextSendDate}</span>
+            <span>Next send date: {campaign.nextSendDate}</span>
           </div>
         )}
         <div className="flex items-center" style={{ gap: 4 }}>
@@ -113,76 +111,80 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         </div>
       </div>
 
-      {/* Variants section */}
-      {campaign.isEnabled && (
-        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Segment variants first */}
-          {segmentVariants.map((variant, idx) => (
-            <VariantRow
-              key={variant.id}
-              variant={variant}
-              isDefault={false}
-              isFirst={idx === 0}
-              onToggleEnabled={() => toggleVariantEnabled(campaign.id, variant.id)}
-              onRemove={() => removeVariant(campaign.id, variant.id)}
+      {/* Content preview */}
+      {campaign.isEnabled && enabledChannels.length > 0 && (
+        <div
+          className="mt-4"
+          style={{
+            border: '1px solid #E5E5E5',
+            borderRadius: 8,
+            padding: '16px 16px 8px 16px',
+          }}
+        >
+          {/* Channel tabs + language */}
+          <div
+            className="flex items-center justify-between"
+            style={{ marginBottom: 8 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CanaryTabs
+              tabs={channelTabs}
+              variant="text"
+              size="compact"
+              defaultTab={activeChannel}
+              onChange={(tabId) => setActiveChannel(tabId as Channel)}
             />
-          ))}
+            <div style={{ width: 120, flexShrink: 0 }}>
+              <CanarySelect
+                value="en"
+                size={InputSize.COMPACT}
+                options={campaign.supportedLanguages.map((lang) => ({
+                  value: lang,
+                  label: LANG_MAP[lang] || lang,
+                }))}
+                onChange={() => {}}
+              />
+            </div>
+          </div>
 
-          {/* Default variant last */}
-          {defaultVariant && (
-            <VariantRow
-              key={defaultVariant.id}
-              variant={defaultVariant}
-              isDefault={true}
-              isFirst={segmentVariants.length === 0}
-              onToggleEnabled={() => toggleVariantEnabled(campaign.id, defaultVariant.id)}
-            />
-          )}
-
-          {/* Add segment button */}
-          {availableSegments.length > 0 && (
-            <CanaryButton
-              type={ButtonType.OUTLINED}
-              size={ButtonSize.COMPACT}
-              icon={<Icon path={mdiPlusOutline} size={0.7} />}
-              onClick={() => setShowAddSegment(true)}
-            >
-              Add Segment
-            </CanaryButton>
+          {/* Content */}
+          {activeContent && (
+            <div>
+              {activeContent.subject && (
+                <div style={{ marginBottom: 8 }}>
+                  <p style={{ fontSize: 12, lineHeight: '18px', color: '#666', margin: '0 0 4px 0' }}>
+                    Subject (English)
+                  </p>
+                  <div style={{ fontSize: 14, lineHeight: '18px', color: '#000' }}>
+                    {activeContent.subject}
+                  </div>
+                </div>
+              )}
+              <div style={{ marginBottom: 8 }}>
+                <p style={{ fontSize: 12, lineHeight: '18px', color: '#666', margin: '0 0 4px 0' }}>
+                  {activeContent.channel === 'email' ? 'Body content (English)' : 'Content (English)'}
+                </p>
+                <div
+                  style={{
+                    fontSize: 14,
+                    lineHeight: '18px',
+                    color: '#000',
+                    whiteSpace: 'pre-wrap',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxHeight: 90,
+                  }}
+                >
+                  {activeContent.body}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}
-
-      {/* Add segment modal */}
-      <CanaryModal
-        isOpen={showAddSegment}
-        onClose={() => { setShowAddSegment(false); setSelectedSegmentId(''); }}
-        title="Add segment variant"
-        size="small"
-      >
-        <p style={{ fontSize: 14, color: '#333', margin: '0 0 16px', lineHeight: '1.5' }}>
-          Select a segment to create a targeted variant of this campaign. Guests matching the segment will receive this variant instead of the default.
-        </p>
-        <CanarySelect
-          label="Segment"
-          size={InputSize.NORMAL}
-          value={selectedSegmentId}
-          placeholder="Select a segment"
-          options={availableSegments.map((s) => ({ value: s.id, label: `${s.name} — ${s.description}` }))}
-          onChange={(e) => setSelectedSegmentId(e.target.value)}
-        />
-        <div className="flex justify-end" style={{ gap: 8, marginTop: 24 }}>
-          <CanaryButton type={ButtonType.OUTLINED} onClick={() => { setShowAddSegment(false); setSelectedSegmentId(''); }}>
-            Cancel
-          </CanaryButton>
-          <CanaryButton
-            type={ButtonType.PRIMARY}
-            onClick={handleAddVariant}
-          >
-            Add Variant
-          </CanaryButton>
-        </div>
-      </CanaryModal>
     </div>
   );
 }

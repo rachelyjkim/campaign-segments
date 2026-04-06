@@ -1,21 +1,67 @@
+/**
+ * Campaign Segments Store (Zustand)
+ *
+ * State for campaigns, segments, editor overlay, and toast.
+ */
+
 import { create } from 'zustand';
-import { ScheduledCampaign, CampaignVariant, ChannelContent } from './types';
+import {
+  ScheduledCampaign,
+  Segment,
+  GuestJourneyTab,
+  ChannelContent,
+  MessageSegmentVariant,
+} from './types';
 import { mockCampaigns } from '@/data/campaigns';
+import { mockSegments } from '@/data/segments';
 
 interface CampaignState {
+  // Data
   campaigns: ScheduledCampaign[];
-  selectedCampaignId: string | null;
+  segments: Segment[];
 
+  // UI State
+  activeTab: GuestJourneyTab;
+  selectedCampaignId: string | null;
+  isCampaignEditorOpen: boolean;
+
+  // Toast
+  toastMessage: string | null;
+  showToast: (message: string) => void;
+  clearToast: () => void;
+
+  // Tab Actions
+  setActiveTab: (tab: GuestJourneyTab) => void;
+
+  // Campaign Actions
   toggleCampaignEnabled: (campaignId: string) => void;
-  toggleVariantEnabled: (campaignId: string, variantId: string) => void;
-  addVariant: (campaignId: string, variant: CampaignVariant) => void;
-  removeVariant: (campaignId: string, variantId: string) => void;
+  updateCampaign: (campaignId: string, updates: Partial<ScheduledCampaign>) => void;
+  deleteCampaign: (campaignId: string) => void;
+  createCampaign: (campaign: ScheduledCampaign) => void;
+  openCampaignEditor: (campaignId?: string) => void;
+  closeCampaignEditor: () => void;
 }
 
 export const useCampaignStore = create<CampaignState>((set) => ({
   campaigns: mockCampaigns,
-  selectedCampaignId: null,
+  segments: mockSegments,
 
+  activeTab: 'scheduled-campaigns',
+  selectedCampaignId: null,
+  isCampaignEditorOpen: false,
+
+  // Toast
+  toastMessage: null,
+  showToast: (message) => {
+    set({ toastMessage: message });
+    setTimeout(() => set({ toastMessage: null }), 3000);
+  },
+  clearToast: () => set({ toastMessage: null }),
+
+  // Tab Actions
+  setActiveTab: (tab) => set({ activeTab: tab }),
+
+  // Campaign Actions
   toggleCampaignEnabled: (campaignId) =>
     set((state) => ({
       campaigns: state.campaigns.map((c) =>
@@ -23,35 +69,29 @@ export const useCampaignStore = create<CampaignState>((set) => ({
       ),
     })),
 
-  toggleVariantEnabled: (campaignId, variantId) =>
+  updateCampaign: (campaignId, updates) =>
     set((state) => ({
       campaigns: state.campaigns.map((c) =>
-        c.id === campaignId
-          ? {
-              ...c,
-              variants: c.variants.map((v) =>
-                v.id === variantId ? { ...v, isEnabled: !v.isEnabled } : v
-              ),
-            }
-          : c
+        c.id === campaignId ? { ...c, ...updates } : c
       ),
     })),
 
-  addVariant: (campaignId, variant) =>
+  deleteCampaign: (campaignId) =>
     set((state) => ({
-      campaigns: state.campaigns.map((c) =>
-        c.id === campaignId
-          ? { ...c, variants: [variant, ...c.variants.filter((v) => v.segmentId !== null), ...c.variants.filter((v) => v.segmentId === null)] }
-          : c
-      ),
+      campaigns: state.campaigns.filter((c) => c.id !== campaignId),
     })),
 
-  removeVariant: (campaignId, variantId) =>
+  createCampaign: (campaign) =>
     set((state) => ({
-      campaigns: state.campaigns.map((c) =>
-        c.id === campaignId
-          ? { ...c, variants: c.variants.filter((v) => v.id !== variantId) }
-          : c
-      ),
+      campaigns: [...state.campaigns, campaign],
     })),
+
+  openCampaignEditor: (campaignId) =>
+    set({
+      selectedCampaignId: campaignId || null,
+      isCampaignEditorOpen: true,
+    }),
+
+  closeCampaignEditor: () =>
+    set({ isCampaignEditorOpen: false }),
 }));

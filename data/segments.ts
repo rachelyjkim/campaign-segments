@@ -1,15 +1,34 @@
-export interface Segment {
-  id: string;
-  name: string;
-  description: string;
-}
+import { Segment } from '@/lib/types';
 
-export const AVAILABLE_SEGMENTS: Segment[] = [
-  { id: 'seg-vip', name: 'VIP Loyalty Guests', description: 'Gold and Platinum loyalty members' },
-  { id: 'seg-long-stay', name: 'Multi-Night Stay', description: 'Guests staying multiple nights' },
-  { id: 'seg-weekend', name: 'Weekend Stay', description: 'Guests with weekend reservations' },
-  { id: 'seg-corporate', name: 'Corporate Booking', description: 'Rate code starts with CORP' },
-  { id: 'seg-returning', name: 'Returning Guests', description: 'Guests with prior stays' },
-  { id: 'seg-door-code', name: 'Guests with Door Code', description: 'UDF: door_code exists' },
-  { id: 'seg-choose-room', name: 'Choose Your Room', description: 'UDF: choose_your_room exists' },
+export const mockSegments: Segment[] = [
+  {
+    id: 'seg-vip',
+    name: 'High-level Loyalty',
+    description: 'Targets Diamond and Platinum loyalty members for premium experiences.',
+    estimatedGuests: 142,
+  },
+  {
+    id: 'seg-long-stay',
+    name: 'Multi-night stays',
+    description: 'Targets guests staying more than one night.',
+    estimatedGuests: 287,
+  },
+  {
+    id: 'seg-weekend',
+    name: 'Weekend Leisure',
+    description: 'Targets leisure and weekend rate guests staying multiple nights.',
+    estimatedGuests: 98,
+  },
+  {
+    id: 'seg-corporate',
+    name: 'Corporate Travellers',
+    description: 'Targets guests on corporate, government, and business rate codes.',
+    estimatedGuests: 203,
+  },
+  {
+    id: 'seg-nonmembers',
+    name: 'Non-members',
+    description: 'Targets guests who are not part of any loyalty program.',
+    estimatedGuests: 412,
+  },
 ];
