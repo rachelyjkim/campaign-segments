@@ -348,7 +348,7 @@ export function EditorMessageCard({
           );
         })}
 
-        {/* All Guests section — always at bottom, no toggle */}
+        {/* All Guests section — at bottom, with toggle */}
         <div>
           <div className="flex items-center justify-between" style={{ padding: 16 }}>
             <h4 style={{ fontSize: 16, fontWeight: 500, color: '#000', margin: 0 }}>All Guests</h4>
@@ -358,6 +358,7 @@ export function EditorMessageCard({
                   Send Test
                 </CanaryButton>
               )}
+              <CanarySwitch checked={campaign.isEnabled} onChange={() => {}} />
               <CanaryButton
                 type={ButtonType.ICON_SECONDARY}
                 size={ButtonSize.COMPACT}
